@@ -16,19 +16,27 @@ float gravity = 0.5f;
 float jumpForce = 10.0f;
 
 // Pipe parameters
-const int numPipes = 5;
+const int numPipes = 3;
 float pipeWidth = 50.0f;
 float pipeHeight = 300.0f;
-float pipeSpacing = 200.0f;
+const float pipeSpacing = 1000.0f; // Increase the value as needed
 float pipeVelocity = 5.0f;
 float pipes[numPipes] = {0.0f};
+float pipeGaps[numPipes] = {0.0f};
 
 int score = 0;
 bool gameEnded = false;
 
+
 void initializePipes() {
+    const float totalPipeWidth = numPipes * pipeWidth + (numPipes - 1) * pipeSpacing;
+    const float initialX = windowWidth + totalPipeWidth / 2.0f;
+
     for (int i = 0; i < numPipes; ++i) {
-        pipes[i] = windowWidth + i * (pipeSpacing + pipeWidth);
+        pipes[i] = initialX + i * (pipeWidth + pipeSpacing);
+
+        // Set random gap positions for each pipe
+        pipeGaps[i] = rand() % static_cast<int>(windowHeight * 0.3f) + windowHeight * 0.2f;
     }
 }
 
@@ -74,6 +82,7 @@ float drawPipe(float x, float gapY) {
 
 
 
+
 // Function to update the game state
 void update() {
     if (!gameEnded) {
@@ -90,18 +99,21 @@ void update() {
         }
 
         // Update pipe positions
+        // Update pipe positions
         for (int i = 0; i < numPipes; ++i) {
             pipes[i] -= pipeVelocity;
 
-            // Declare gapY here
-            float gapY = (windowHeight - pipeHeight) / 2.0f;
-
-            // Check for collision with bird (top part of the pipe)
+            // Check if the bird is within the horizontal bounds of the current pipe
             if (birdX + birdRadius > pipes[i] && birdX - birdRadius < pipes[i] + pipeWidth) {
-                float gapHeight = drawPipe(pipes[i], gapY);
-                if (birdY + birdRadius > gapY + gapHeight || birdY - birdRadius < gapY) {
-                    std::cout << "Game Over!" << std::endl;
-                    gameEnded = true;
+                // Check for collision only if the pipe is on the screen
+                if (pipes[i] + pipeWidth > 0) {
+                    float gapY = pipeGaps[i];
+                    float gapHeight = drawPipe(pipes[i], gapY);
+                    // Check for collision with bird (top part of the pipe)
+                    if (birdY + birdRadius > gapY + gapHeight || birdY - birdRadius < gapY) {
+                        std::cout << "Game Over!" << std::endl;
+                        gameEnded = true;
+                    }
                 }
             }
 
@@ -112,6 +124,7 @@ void update() {
                 std::cout << "Score: " << score << std::endl;
             }
         }
+
     }
 
     glutPostRedisplay();  // Request a redraw
@@ -130,22 +143,27 @@ void keyboard(unsigned char key, int x, int y) {
     if (key == ' ' && !gameEnded) {
         birdVelocity = jumpForce;
     }
-    else if (key == 'r' || key == 'R' && gameEnded) {
+    else if ((key == 'r' || key == 'R') && gameEnded) {
         restartGame();
     }
+
 }
 
 
-// Function to draw the scene
+void drawGround() {
+    glColor3f(0.5f, 0.5f, 0.5f);  // Gray color for the ground
+    drawRectangle(0.0f, 0.0f, windowWidth, 10.0f);
+}
+
 void drawScene() {
     glClear(GL_COLOR_BUFFER_BIT);
 
+    drawGround();
     drawBird();
 
     // Draw pipes with gaps
     for (int i = 0; i < numPipes; ++i) {
-        float gapY = (windowHeight - pipeHeight) / 2.0f;
-        gapY += drawPipe(pipes[i], gapY);
+        drawPipe(pipes[i], pipeGaps[i]);
     }
 
     glutSwapBuffers();
@@ -153,13 +171,14 @@ void drawScene() {
 
 
 
+
 int main(int argc, char** argv) {
     glutInit(&argc, argv);
-    glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB);
+    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
     glutInitWindowSize(windowWidth, windowHeight);
     glutCreateWindow("Flappy Bird");
 
-    glOrtho(0.0, windowWidth, 0.0, windowHeight, -1.0, 1.0);
+    glOrtho(0.0, windowWidth, 0.0, windowHeight, -10.0, 10.0);
     glutDisplayFunc(drawScene);
     glutIdleFunc(update);
     glutKeyboardFunc(keyboard);
@@ -168,6 +187,7 @@ int main(int argc, char** argv) {
     for (int i = 0; i < numPipes; ++i) {
         pipes[i] = windowWidth + i * pipeSpacing;
     }
+    glutSwapBuffers();
 
     initializePipes();
 
