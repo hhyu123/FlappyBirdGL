@@ -13,15 +13,18 @@ float birdY = windowHeight / 2.0f;
 float birdRadius = 20.0f;
 float birdVelocity = 0.0f;
 float gravity = 0.5f;
-float jumpForce = 10.0f;
+float jumpForce = 8.0f;
 
 // Pipe parameters
 const int numPipes = 5;
 float pipeWidth = 50.0f;
 float pipeHeight = 300.0f;
 float pipeSpacing = 200.0f;
-float pipeVelocity = 1.0f;
+float pipeVelocity = 5.0f;
 float pipes[numPipes] = {0.0f};
+
+int score = 0;
+bool gameEnded = false;
 
 // Function to draw a circle
 void drawCircle(float x, float y, float radius) {
@@ -59,40 +62,45 @@ void drawPipe(float x) {
     drawRectangle(x, windowHeight - pipeSpacing + pipeHeight, pipeWidth, windowHeight);
 }
 
-// Function to handle keyboard input
 void keyboard(unsigned char key, int x, int y) {
-    if (key == ' ') {
+    if (key == ' ' && !gameEnded) {
         birdVelocity = jumpForce;
     }
 }
 
 // Function to update the game state
 void update() {
-    // Update bird position based on velocity
-    birdY += birdVelocity;
-        
-    // Apply gravity to bird velocity
-    birdVelocity -= gravity;
-    if( birdY+15>1000||birdY-15< 0){
-        std::cout << "Game Over!" << std::endl;
-        exit(0);
-    }
+    if (!gameEnded) {
+        // Update bird position based on velocity
+        birdY += birdVelocity;
 
-    // Update pipe positions
-    for (int i = 0; i < numPipes; ++i) {
-        pipes[i] -= pipeVelocity;
+        // Apply gravity to bird velocity
+        birdVelocity -= gravity;
 
-        // Check for collision with bird
-        if (birdX + birdRadius > pipes[i] && birdX - birdRadius < pipes[i] + pipeWidth) {
-            if (birdY - birdRadius < windowHeight - pipeSpacing || birdY + birdRadius > windowHeight - pipeSpacing + pipeHeight) {
-                std::cout << "Game Over!" << std::endl;
-                exit(0);
-            }
+        // Check for collision with top and bottom boundaries
+        if (birdY + birdRadius > windowHeight || birdY - birdRadius < 0) {
+            std::cout << "Game Over!" << std::endl;
+            gameEnded = true;
         }
 
-        // If a pipe goes off-screen, reset its position
-        if (pipes[i] + pipeWidth < 0) {
-            pipes[i] = windowWidth;
+        // Update pipe positions
+        for (int i = 0; i < numPipes; ++i) {
+            pipes[i] -= pipeVelocity;
+
+            // Check for collision with bird
+            if (birdX + birdRadius > pipes[i] && birdX - birdRadius < pipes[i] + pipeWidth) {
+                if (birdY - birdRadius < windowHeight - pipeSpacing || birdY + birdRadius > windowHeight - pipeSpacing + pipeHeight) {
+                    std::cout << "Game Over!" << std::endl;
+                    gameEnded = true;
+                }
+            }
+
+            // If a pipe goes off-screen, reset its position and increase the score
+            if (pipes[i] + pipeWidth < 0) {
+                pipes[i] = windowWidth;
+                score++;
+                std::cout << "Score: " << score << std::endl;
+            }
         }
     }
 
