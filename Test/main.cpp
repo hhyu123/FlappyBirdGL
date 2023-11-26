@@ -95,13 +95,13 @@ void update() {
                 }
             }
 
-            // If a pipe goes off-screen, reset its position and increase the score
-            if (pipes[i] + pipeWidth < 0) {
+            if (pipes[i] + pipeWidth < birdX - birdRadius) {
                 pipes[i] = windowWidth;
                 score++;
                 std::cout << "Score: " << score << std::endl;
             }
         }
+        
     }
 
     glutPostRedisplay();  // Request a redraw
