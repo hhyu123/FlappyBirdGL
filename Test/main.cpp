@@ -13,7 +13,7 @@ float birdY = windowHeight / 2.0f;
 float birdRadius = 20.0f;
 float birdVelocity = 0.0f;
 float gravity = 0.5f;
-float jumpForce = 8.0f;
+float jumpForce = 10.0f;
 
 // Pipe parameters
 const int numPipes = 5;
@@ -25,6 +25,13 @@ float pipes[numPipes] = {0.0f};
 
 int score = 0;
 bool gameEnded = false;
+
+void initializePipes() {
+    for (int i = 0; i < numPipes; ++i) {
+        pipes[i] = windowWidth + i * (pipeSpacing + pipeWidth);
+    }
+}
+
 
 // Function to draw a circle
 void drawCircle(float x, float y, float radius) {
@@ -55,18 +62,17 @@ void drawBird() {
     drawCircle(birdX, birdY, birdRadius);
 }
 
-// Function to draw a pipe
-void drawPipe(float x) {
+float drawPipe(float x, float gapY) {
+    float gapHeight = windowHeight * 0.3f; // You can adjust this value as needed
     glColor3f(0.0f, 1.0f, 0.0f);  // Green color
-    drawRectangle(x, 0.0f, pipeWidth, windowHeight - pipeSpacing);
-    drawRectangle(x, windowHeight - pipeSpacing + pipeHeight, pipeWidth, windowHeight);
+    // Top pipe
+    drawRectangle(x, gapY + gapHeight, pipeWidth, windowHeight - gapY - gapHeight);
+    // Bottom pipe
+    drawRectangle(x, 0.0f, pipeWidth, gapY);
+    return gapHeight;
 }
 
-void keyboard(unsigned char key, int x, int y) {
-    if (key == ' ' && !gameEnded) {
-        birdVelocity = jumpForce;
-    }
-}
+
 
 // Function to update the game state
 void update() {
@@ -87,25 +93,48 @@ void update() {
         for (int i = 0; i < numPipes; ++i) {
             pipes[i] -= pipeVelocity;
 
-            // Check for collision with bird
+            // Declare gapY here
+            float gapY = (windowHeight - pipeHeight) / 2.0f;
+
+            // Check for collision with bird (top part of the pipe)
             if (birdX + birdRadius > pipes[i] && birdX - birdRadius < pipes[i] + pipeWidth) {
-                if (birdY - birdRadius < windowHeight - pipeSpacing || birdY + birdRadius > windowHeight - pipeSpacing + pipeHeight) {
+                float gapHeight = drawPipe(pipes[i], gapY);
+                if (birdY + birdRadius > gapY + gapHeight || birdY - birdRadius < gapY) {
                     std::cout << "Game Over!" << std::endl;
                     gameEnded = true;
                 }
             }
 
+            // If a pipe goes off-screen, reset its position and increase the score
             if (pipes[i] + pipeWidth < birdX - birdRadius) {
                 pipes[i] = windowWidth;
                 score++;
                 std::cout << "Score: " << score << std::endl;
             }
         }
-        
     }
 
     glutPostRedisplay();  // Request a redraw
 }
+
+          
+void restartGame() {
+    birdY = windowHeight / 2.0f;
+    birdVelocity = 0.0f;
+    score = 0;
+    gameEnded = false;
+    initializePipes();
+}
+
+void keyboard(unsigned char key, int x, int y) {
+    if (key == ' ' && !gameEnded) {
+        birdVelocity = jumpForce;
+    }
+    else if (key == 'r' || key == 'R' && gameEnded) {
+        restartGame();
+    }
+}
+
 
 // Function to draw the scene
 void drawScene() {
@@ -113,13 +142,16 @@ void drawScene() {
 
     drawBird();
 
-    // Draw pipes
+    // Draw pipes with gaps
     for (int i = 0; i < numPipes; ++i) {
-        drawPipe(pipes[i]);
+        float gapY = (windowHeight - pipeHeight) / 2.0f;
+        gapY += drawPipe(pipes[i], gapY);
     }
 
     glutSwapBuffers();
 }
+
+
 
 int main(int argc, char** argv) {
     glutInit(&argc, argv);
@@ -136,6 +168,8 @@ int main(int argc, char** argv) {
     for (int i = 0; i < numPipes; ++i) {
         pipes[i] = windowWidth + i * pipeSpacing;
     }
+
+    initializePipes();
 
     glutMainLoop();
 
