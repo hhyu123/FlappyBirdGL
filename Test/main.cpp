@@ -5,7 +5,7 @@
 
 // Define window dimensions
 const int windowWidth = 800;
-const int windowHeight = 600;
+const int windowHeight = 1000;
 
 // Bird parameters
 float birdX = 100.0f;
@@ -20,7 +20,7 @@ const int numPipes = 5;
 float pipeWidth = 50.0f;
 float pipeHeight = 300.0f;
 float pipeSpacing = 200.0f;
-float pipeVelocity = 5.0f;
+float pipeVelocity = 1.0f;
 float pipes[numPipes] = {0.0f};
 
 // Function to draw a circle
@@ -62,7 +62,7 @@ void drawPipe(float x) {
 // Function to handle keyboard input
 void keyboard(unsigned char key, int x, int y) {
     if (key == ' ') {
-        birdVelocity = -jumpForce;
+        birdVelocity = jumpForce;
     }
 }
 
@@ -70,9 +70,13 @@ void keyboard(unsigned char key, int x, int y) {
 void update() {
     // Update bird position based on velocity
     birdY += birdVelocity;
-    
+        
     // Apply gravity to bird velocity
-    birdVelocity += gravity;
+    birdVelocity -= gravity;
+    if( birdY+15>1000||birdY-15< 0){
+        std::cout << "Game Over!" << std::endl;
+        exit(0);
+    }
 
     // Update pipe positions
     for (int i = 0; i < numPipes; ++i) {
@@ -111,12 +115,11 @@ void drawScene() {
 
 int main(int argc, char** argv) {
     glutInit(&argc, argv);
-    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
+    glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB);
     glutInitWindowSize(windowWidth, windowHeight);
     glutCreateWindow("Flappy Bird");
 
     glOrtho(0.0, windowWidth, 0.0, windowHeight, -1.0, 1.0);
-
     glutDisplayFunc(drawScene);
     glutIdleFunc(update);
     glutKeyboardFunc(keyboard);
