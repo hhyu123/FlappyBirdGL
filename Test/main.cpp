@@ -19,7 +19,7 @@ float jumpForce = 10.0f;
 const int numPipes = 3;
 float pipeWidth = 50.0f;
 float pipeHeight = 300.0f;
-const float pipeSpacing = 1000.0f; // Increase the value as needed
+const float pipeSpacing = 500.0f; // Increase the value as needed
 float pipeVelocity = 5.0f;
 float pipes[numPipes] = {0.0f};
 float pipeGaps[numPipes] = {0.0f};
@@ -30,13 +30,31 @@ bool gameEnded = false;
 
 void initializePipes() {
     const float totalPipeWidth = numPipes * pipeWidth + (numPipes - 1) * pipeSpacing;
-    const float initialX = windowWidth + totalPipeWidth / 2.0f;
+    const float initialX = windowWidth + totalPipeWidth / 5.0f;
 
     for (int i = 0; i < numPipes; ++i) {
         pipes[i] = initialX + i * (pipeWidth + pipeSpacing);
 
         // Set random gap positions for each pipe
         pipeGaps[i] = rand() % static_cast<int>(windowHeight * 0.3f) + windowHeight * 0.2f;
+    }
+}
+
+
+void drawScore() {
+    glColor3f(1.0f, 1.0f, 1.0f);  // White color for the score
+    glRasterPos2f(windowWidth - 100, windowHeight - 20);
+
+    // Draw "Score: "
+    std::string scoreText = "Score: ";
+    for (char character : scoreText) {
+        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, character);
+    }
+
+    // Convert the score to a string to draw each digit separately
+    std::string scoreStr = std::to_string(score);
+    for (char digit : scoreStr) {
+        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, digit);
     }
 }
 
@@ -165,6 +183,8 @@ void drawScene() {
     for (int i = 0; i < numPipes; ++i) {
         drawPipe(pipes[i], pipeGaps[i]);
     }
+
+    drawScore();  // Draw the score
 
     glutSwapBuffers();
 }
