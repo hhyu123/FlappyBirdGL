@@ -3,7 +3,7 @@
 #include <cmath>
 #include <GLUT/GLUT.h>
 using namespace std;
-
+//this is a change
 // Define window dimensions
 const int windowWidth = 800;
 const int windowHeight = 1000;
